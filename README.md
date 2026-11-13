@@ -1,28 +1,41 @@
-# Jonas Dzelme — Portfólio Premium 6.0
+# Portfólio — Jonas Dzelme
 
-## Correções solicitadas
+Este é meu portfólio de desenvolvimento. Reúne projetos que construí, tecnologias com as quais trabalho e formas de entrar em contato comigo.
 
-- Foto do hero recortada no limite superior da faixa editorial: não ultrapassa a linha nem cobre o texto de rodapé.
-- Contato reformulado: cartão escuro de alto contraste, e-mail legível e botão **Enviar mensagem** que abre o aplicativo de e-mail com assunto preenchido.
-- Layout adaptável a telas menores; e-mail quebra linhas sem sair da tela.
-- Mantidos foto transparente, React, TypeScript, Three.js, GSAP, cases do StageManager e Academia e listagem automática de repositórios públicos do GitHub.
-- Métricas ilustrativas removidas do mockup do StageManager para evitar números fictícios.
+**[Abrir o portfólio](https://portfolio-jonas-dzelme.vercel.app/)**
 
-## Rodar localmente
+## O que tem no site
+
+- Apresentação profissional e projetos em destaque, incluindo StageManager e Projeto Academia.
+- Lista de repositórios públicos carregada pela API do GitHub.
+- Interface responsiva com animações e elementos visuais interativos.
+- Área de contato com acesso ao e-mail e aos meus perfis profissionais.
+
+## Tecnologias
+
+React, TypeScript, Vite, Three.js e GSAP.
+
+## Executar localmente
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Publicar na Vercel
+## Gerar a versão de produção
 
 ```bash
 npm run build
 ```
 
-Importe o repositório na Vercel, framework **Vite**, build command `npm run build`, output directory `dist`.
+O projeto está publicado na Vercel. Para uma nova implantação, importe o repositório como projeto **Vite**, use `npm run build` e configure `dist` como diretório de saída.
 
-**Contato:** jonasdzelme@gmail.com · https://www.linkedin.com/in/jonas-dzelme/ · https://github.com/Dzelmee
+## Observação
 
-**Nota:** os repositórios públicos são buscados no navegador pela API do GitHub, sujeitos a disponibilidade e limites da API.
+A lista de repositórios depende da disponibilidade e dos limites de acesso da API pública do GitHub.
+
+## Contato
+
+- [LinkedIn](https://www.linkedin.com/in/jonas-dzelme/)
+- [GitHub](https://github.com/Dzelmee)
+- [E-mail](mailto:jonasdzelme@gmail.com)
