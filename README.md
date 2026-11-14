@@ -1,41 +1,33 @@
-# Portfólio — Jonas Dzelme
+# Meu portfólio — Forbidden Duel
 
-Este é meu portfólio de desenvolvimento. Reúne projetos que construí, tecnologias com as quais trabalho e formas de entrar em contato comigo.
+Transformei meu portfólio em uma experiência interativa inspirada nos jogos de duelo da época do PlayStation 1. Além de conhecer meus projetos, dá para invocar cartas, combinar monstros e enfrentar o BUG.
 
-**[Abrir o portfólio](https://portfolio-jonas-dzelme.vercel.app/)**
+## O que desenvolvi
 
-## O que tem no site
+- Arena 3D com Three.js e interface em React + TypeScript.
+- Cartas baseadas nos meus projetos, com fusões e animações próprias.
+- Idiomas português e inglês.
+- Trilha original gerada com Web Audio API e opção de silenciar.
+- Links de contato e currículo em PDF.
+- Layout adaptado para diferentes tamanhos de tela.
 
-- Apresentação profissional e projetos em destaque, incluindo StageManager e Projeto Academia.
-- Lista de repositórios públicos carregada pela API do GitHub.
-- Interface responsiva com animações e elementos visuais interativos.
-- Área de contato com acesso ao e-mail e aos meus perfis profissionais.
-
-## Tecnologias
-
-React, TypeScript, Vite, Three.js e GSAP.
-
-## Executar localmente
+## Rodando localmente
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Gerar a versão de produção
+Para gerar a versão de produção:
 
 ```bash
 npm run build
 ```
 
-O projeto está publicado na Vercel. Para uma nova implantação, importe o repositório como projeto **Vite**, use `npm run build` e configure `dist` como diretório de saída.
+## Publicação
 
-## Observação
-
-A lista de repositórios depende da disponibilidade e dos limites de acesso da API pública do GitHub.
+Uso a Vercel para publicar o site. O projeto é Vite: comando de build `npm run build`, diretório de saída `dist`.
 
 ## Contato
 
-- [LinkedIn](https://www.linkedin.com/in/jonas-dzelme/)
-- [GitHub](https://github.com/Dzelmee)
-- [E-mail](mailto:jonasdzelme@gmail.com)
+[LinkedIn](https://www.linkedin.com/in/jonas-dzelme/) · [GitHub](https://github.com/Dzelmee)
