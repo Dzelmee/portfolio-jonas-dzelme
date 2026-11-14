@@ -147,7 +147,7 @@ function useRetroAudio(enabled:boolean,scene:string){
     note(53,.23,'sine',battle?.09:.05,0,240)}
    if(step%4===2){note(190,.075,'triangle',battle?.034:.020,0,850);
     note(1250,.033,'square',battle?.009:.006,0,2100)}
-   if(battle&&step%2===1)note(1850,.024,'square',.006,0,2600);
+   // Sem o bip agudo repetitivo do modo arena; a trilha e os demais efeitos continuam ativos.
    // A ceremonial bell announces new phrases; battle mode adds a dramatic low hit.
    if(step===0&&bar%2===0){note(root*4,.88,'sine',.022,.04,2900);
     if(battle)note(49,.72,'sawtooth',.055,0,260)}
