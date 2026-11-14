@@ -121,16 +121,17 @@ function useRetroAudio(enabled:boolean,scene:string){
   if(!enabled){if(interval.current!==null)clearInterval(interval.current);interval.current=null;return}
   // Original score: ritual percussion, PS1-era FM-like synthesis and a custom modal motif.
   // No melody, arrangement, sample or audio file from any existing game is used.
-  const battle=scene==='duelo';
+  const battle=scene==='arena';
   // Tema próprio para o duelo: escala com segunda menor e terça maior,
   // percussão grave e fraseado mais espaçado, sem reproduzir a OST do jogo.
   if(battle){
-   const roots=[110,103.83,98,116.54];
+   const roots=[110,98,116.54,103.83];
+   // Frases originais com pausas e saltos, para diferenciar o combate do menu.
    const phrases=[
-    [0,null,1,4,5,null,4,1,0,null,-2,1,4,null,1,null],
-    [0,1,4,null,7,5,4,null,1,0,-2,null,0,4,1,null],
-    [0,null,5,4,1,0,null,-2,0,1,4,5,7,null,5,4],
-    [4,1,0,null,-2,0,1,null,4,5,4,1,0,null,null,null]
+    [0,null,1,null,5,4,null,1,0,null,-2,null,4,5,1,null],
+    [0,null,7,5,4,null,1,0,null,-2,1,null,5,4,null,null],
+    [0,1,null,4,8,7,null,5,4,null,1,0,null,-2,0,null],
+    [5,null,4,1,0,null,-2,0,1,4,null,7,5,4,1,null]
    ];
    tick.current=0;
    const playBattle=()=>{
@@ -139,8 +140,8 @@ function useRetroAudio(enabled:boolean,scene:string){
     if(degree!==null){
      const pitch=root*2**((degree+12)/12);
      // Timbre de sopro sintetizado com uma segunda voz discreta.
-     note(pitch,.38,'sawtooth',.028,0,1250);
-     note(pitch*1.003,.42,'triangle',.037,.012,1650);
+     note(pitch,.56,'sawtooth',.046,0,950);
+     note(pitch*.998,.65,'triangle',.045,.018,1400);
     }
     // Bordão e resposta grave dão sustentação sem criar apitos repetitivos.
     if(step===0||step===8){
@@ -155,7 +156,7 @@ function useRetroAudio(enabled:boolean,scene:string){
     if(step===12&&bar===3)note(root/2,.65,'sawtooth',.026,0,300);
    };
    playBattle();
-   interval.current=window.setInterval(playBattle,230);
+   interval.current=window.setInterval(playBattle,280);
    return()=>{if(interval.current!==null)clearInterval(interval.current);interval.current=null};
   }
   const roots=[110,116.54,146.83,130.81,110,98,116.54,130.81];
@@ -196,7 +197,7 @@ function useRetroAudio(enabled:boolean,scene:string){
  useEffect(()=>()=>{if(interval.current!==null)clearInterval(interval.current);void ctxRef.current?.close()},[]);
  return effect;
 }
-function App(){const[page,setPage]=useState('inicio');const[language,setLanguage]=useState<Language>(()=>{try{return localStorage.getItem('forbidden-lang')==='en'?'en':'pt'}catch{return 'pt'}});const tr=(value:string)=>translate(language,value);useEffect(()=>{document.documentElement.lang=language;try{localStorage.setItem('forbidden-lang',language)}catch{}},[language]);const[chosen,setChosen]=useState(0);const[muted,setMuted]=useState(true);const retroAudio=useRetroAudio(!muted,page);const audio=(effect:'click'|'select'|'attack'|'victory'|'defeat'='click')=>{const mobile=window.matchMedia('(pointer: coarse)').matches||window.matchMedia('(max-width: 767px)').matches;if(mobile&&effect==='attack')return;retroAudio(effect)};const[photoOk,setPhotoOk]=useState(true);const[retroPhoto,setRetroPhoto]=useState(true);const[playerLP,setPlayerLP]=useState(4000);const[enemyLP,setEnemyLP]=useState(BOSS_MAX_HP);const[turn,setTurn]=useState(0);const[log,setLog]=useState('Escolha uma carta para começar o duelo.');const[played,setPlayed]=useState<number|null>(null);const[duelSlots,setDuelSlots]=useState<(number|null)[]>([null,null,null,null,null]);const[activeSlot,setActiveSlot]=useState(2);const[draggingSlot,setDraggingSlot]=useState<number|null>(null);const[draggingDeck,setDraggingDeck]=useState<number|null>(null);const[fusionTarget,setFusionTarget]=useState<number|null>(null);const[enemyPlayed,setEnemyPlayed]=useState<number|null>(null);const[busy,setBusy]=useState(false);const[arenaOpen,setArenaOpen]=useState(false);const[guardian3D,setGuardian3D]=useState(false);const[flash,setFlash]=useState(false);const[attackNonce,setAttackNonce]=useState(0);const[defenseSlots,setDefenseSlots]=useState<boolean[]>([false,false,false,false,false]);const[critical,setCritical]=useState(false);const[attackLabel,setAttackLabel]=useState('');const[comboReady,setComboReady]=useState(false);const[cinema,setCinema]=useState<'idle'|'summon'|'attack'|'result'>('idle');const[duelOutcome,setDuelOutcome]=useState<'victory'|'defeat'|null>(null);const[summon,setSummon]=useState<number|null>(null);const localizedProjects=projects.map(p=>({...p,desc:tr(p.desc),type:tr(p.type)}));const localizedDuelProjects=duelProjects.map(p=>({...p,desc:tr(p.desc),type:tr(p.type)}));const selected=localizedProjects[chosen];useEffect(()=>{const ready=()=>setGuardian3D(true);const fallback=()=>setGuardian3D(false);window.addEventListener('guardian-3d-ready',ready);window.addEventListener('guardian-3d-fallback',fallback);return()=>{window.removeEventListener('guardian-3d-ready',ready);window.removeEventListener('guardian-3d-fallback',fallback)}},[]);useEffect(()=>{const handler=(e:KeyboardEvent)=>{if(e.key==='Escape')setPage('inicio');if(page==='projetos'||page==='inicio'){if(e.key==='ArrowRight')setChosen(v=>(v+1)%projects.length);if(e.key==='ArrowLeft')setChosen(v=>(v+projects.length-1)%projects.length)}};window.addEventListener('keydown',handler);return()=>window.removeEventListener('keydown',handler)},[page]);function beep(){audio('select')}const timeouts=useRef<number[]>([]);
+function App(){const[page,setPage]=useState('inicio');const[language,setLanguage]=useState<Language>(()=>{try{return localStorage.getItem('forbidden-lang')==='en'?'en':'pt'}catch{return 'pt'}});const tr=(value:string)=>translate(language,value);useEffect(()=>{document.documentElement.lang=language;try{localStorage.setItem('forbidden-lang',language)}catch{}},[language]);const[chosen,setChosen]=useState(0);const[muted,setMuted]=useState(true);const retroAudio=useRetroAudio(!muted,page==='duelo'&&arenaOpen?'arena':page);const audio=(effect:'click'|'select'|'attack'|'victory'|'defeat'='click')=>{const mobile=window.matchMedia('(pointer: coarse)').matches||window.matchMedia('(max-width: 767px)').matches;if(mobile&&effect==='attack')return;retroAudio(effect)};const[photoOk,setPhotoOk]=useState(true);const[retroPhoto,setRetroPhoto]=useState(true);const[playerLP,setPlayerLP]=useState(4000);const[enemyLP,setEnemyLP]=useState(BOSS_MAX_HP);const[turn,setTurn]=useState(0);const[log,setLog]=useState('Escolha uma carta para começar o duelo.');const[played,setPlayed]=useState<number|null>(null);const[duelSlots,setDuelSlots]=useState<(number|null)[]>([null,null,null,null,null]);const[activeSlot,setActiveSlot]=useState(2);const[draggingSlot,setDraggingSlot]=useState<number|null>(null);const[draggingDeck,setDraggingDeck]=useState<number|null>(null);const[fusionTarget,setFusionTarget]=useState<number|null>(null);const[enemyPlayed,setEnemyPlayed]=useState<number|null>(null);const[busy,setBusy]=useState(false);const[arenaOpen,setArenaOpen]=useState(false);const[guardian3D,setGuardian3D]=useState(false);const[flash,setFlash]=useState(false);const[attackNonce,setAttackNonce]=useState(0);const[defenseSlots,setDefenseSlots]=useState<boolean[]>([false,false,false,false,false]);const[critical,setCritical]=useState(false);const[attackLabel,setAttackLabel]=useState('');const[comboReady,setComboReady]=useState(false);const[cinema,setCinema]=useState<'idle'|'summon'|'attack'|'result'>('idle');const[duelOutcome,setDuelOutcome]=useState<'victory'|'defeat'|null>(null);const[summon,setSummon]=useState<number|null>(null);const localizedProjects=projects.map(p=>({...p,desc:tr(p.desc),type:tr(p.type)}));const localizedDuelProjects=duelProjects.map(p=>({...p,desc:tr(p.desc),type:tr(p.type)}));const selected=localizedProjects[chosen];useEffect(()=>{const ready=()=>setGuardian3D(true);const fallback=()=>setGuardian3D(false);window.addEventListener('guardian-3d-ready',ready);window.addEventListener('guardian-3d-fallback',fallback);return()=>{window.removeEventListener('guardian-3d-ready',ready);window.removeEventListener('guardian-3d-fallback',fallback)}},[]);useEffect(()=>{const handler=(e:KeyboardEvent)=>{if(e.key==='Escape')setPage('inicio');if(page==='projetos'||page==='inicio'){if(e.key==='ArrowRight')setChosen(v=>(v+1)%projects.length);if(e.key==='ArrowLeft')setChosen(v=>(v+projects.length-1)%projects.length)}};window.addEventListener('keydown',handler);return()=>window.removeEventListener('keydown',handler)},[page]);function beep(){audio('select')}const timeouts=useRef<number[]>([]);
  useEffect(()=>()=>{timeouts.current.forEach(clearTimeout)},[]);
  const later=(fn:()=>void,delay:number)=>{timeouts.current.push(window.setTimeout(fn,delay))};
  function reset(){timeouts.current.forEach(clearTimeout);timeouts.current=[];setPlayerLP(4000);setEnemyLP(BOSS_MAX_HP);setTurn(0);setPlayed(null);setDuelSlots([null,null,null,null,null]);setActiveSlot(2);setDraggingSlot(null);setDraggingDeck(null);setFusionTarget(null);setDefenseSlots([false,false,false,false,false]);setCritical(false);setAttackLabel('');setComboReady(false);setEnemyPlayed(null);setLog('Novo duelo! Escolha sua primeira carta.');setBusy(false);setCinema('idle');setDuelOutcome(null);setSummon(null);setFlash(false)}
