@@ -1,0 +1,1 @@
+Place a properly licensed, rigged GLB here named clientflow-guardian.glb. Build 21 automatically loads it; until present, the stable 2.5D sprite remains visible. This folder deliberately contains no invented or low-quality model.
