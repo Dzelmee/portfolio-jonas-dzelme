@@ -119,80 +119,88 @@ function useRetroAudio(enabled:boolean,scene:string){
  };
  useEffect(()=>{
   if(!enabled){if(interval.current!==null)clearInterval(interval.current);interval.current=null;return}
-  // Original score: ritual percussion, PS1-era FM-like synthesis and a custom modal motif.
-  // No melody, arrangement, sample or audio file from any existing game is used.
-  const battle=scene==='arena';
-  // Tema próprio para o duelo: escala com segunda menor e terça maior,
-  // percussão grave e fraseado mais espaçado, sem reproduzir a OST do jogo.
-  if(battle){
-   const roots=[110,98,116.54,103.83];
-   // Frases originais com pausas e saltos, para diferenciar o combate do menu.
-   const phrases=[
-    [0,null,1,null,5,4,null,1,0,null,-2,null,4,5,1,null],
-    [0,null,7,5,4,null,1,0,null,-2,1,null,5,4,null,null],
-    [0,1,null,4,8,7,null,5,4,null,1,0,null,-2,0,null],
-    [5,null,4,1,0,null,-2,0,1,4,null,7,5,4,1,null]
-   ];
-   tick.current=0;
-   const playBattle=()=>{
-    const i=tick.current++,step=i%16,bar=Math.floor(i/16)%4;
-    const root=roots[bar],degree=phrases[bar][step];
-    if(degree!==null){
-     const pitch=root*2**((degree+12)/12);
-     // Timbre de sopro sintetizado com uma segunda voz discreta.
-     note(pitch,.56,'sawtooth',.046,0,950);
-     note(pitch*.998,.65,'triangle',.045,.018,1400);
-    }
-    // Bordão e resposta grave dão sustentação sem criar apitos repetitivos.
-    if(step===0||step===8){
-     note(root/2,1.35,'triangle',.065,0,370);
-     note(root*1.5,.9,'sine',.015,.08,900);
-    }
-    if(step%4===0){
-     note(62,.23,'triangle',.13,0,230);
-     note(46,.3,'sine',.075,.02,170);
-    }
-    if(step===6||step===14)note(165,.10,'triangle',.027,0,510);
-    if(step===12&&bar===3)note(root/2,.65,'sawtooth',.026,0,300);
-   };
-   playBattle();
-   interval.current=window.setInterval(playBattle,280);
-   return()=>{if(interval.current!==null)clearInterval(interval.current);interval.current=null};
-  }
-  const roots=[110,116.54,146.83,130.81,110,98,116.54,130.81];
-  // Relative semitone steps. Entire melody and its harmonic progression were written for this portfolio.
-  const theme=[0,1,5,7,5,1,-2,0, 0,5,8,7,5,3,1,-2,
-    0,1,5,10,8,7,5,1, -2,0,3,5,7,5,1,0,
-    0,5,7,12,10,7,5,3, 1,3,5,8,7,5,1,-2,
-    0,1,5,7,10,8,7,5, 3,1,0,-2,0,5,1,0];
-  const bass=[0,-12,-5,-12,0,-12,-7,-12];
-  const stepMs=battle?175:225;
-  tick.current=0;
-  const playStep=()=>{
-   const i=tick.current++,step=i%16,bar=Math.floor(i/16)%8,root=roots[bar],phrase=Math.floor(i/64)%2;
-   const semitone=theme[i%theme.length],pitch=root*2**((semitone+12)/12);
-   // An airy two-voice lead, with a distinct response in the second half of each phrase.
-   if(step%2===0){note(pitch,battle?.30:.43,'triangle',battle?.055:.042,0,1650);
-    note(pitch*2,battle?.14:.22,'sine',.012,.025,3100)}
-   if(step===6||step===14){note(pitch*2**(-7/12),.37,'sine',.025,.07,1200)}
-   // Ominous sustained harmony, deliberately sparse to leave room for UI effects.
-   if(step===0||step===8){note(root/2,.95,'sawtooth',battle?.041:.028,0,420);
-    note(root*2**(7/12),1.10,'sine',.021,.08,1250)}
-   if(step%4===0)note(root*2**(bass[Math.floor(step/2)%8]/12),.28,'triangle',battle?.065:.042,0,600);
-   // Ritual percussion synthesized in real time; no borrowed drum samples.
-   if(step%4===0){note(battle?73:64,.18,'triangle',battle?.115:.075,0,320);
-    note(53,.23,'sine',battle?.09:.05,0,240)}
-   if(step%4===2){note(190,.075,'triangle',battle?.034:.020,0,850);
-    note(1250,.033,'square',battle?.009:.006,0,2100)}
-   // Sem o bip agudo repetitivo do modo arena; a trilha e os demais efeitos continuam ativos.
-   // A ceremonial bell announces new phrases; battle mode adds a dramatic low hit.
-   if(step===0&&bar%2===0){note(root*4,.88,'sine',.022,.04,2900);
-    if(battle)note(49,.72,'sawtooth',.055,0,260)}
-   if(phrase===1&&step===12)note(pitch*1.5,.65,'triangle',.018,.08,1100);
+  let c:AudioContext;
+  try{c=getCtx()}catch{return}
+  const master=c.createGain();master.gain.value=.48;
+  const compressor=c.createDynamicsCompressor();compressor.threshold.value=-22;compressor.ratio.value=3;
+  master.connect(compressor);compressor.connect(c.destination);
+  const delay=c.createDelay(.6);delay.delayTime.value=.31;
+  const feedback=c.createGain();feedback.gain.value=.16;
+  const wet=c.createGain();wet.gain.value=.14;
+  master.connect(delay);delay.connect(feedback);feedback.connect(delay);delay.connect(wet);wet.connect(compressor);
+  const noiseBuffer=c.createBuffer(1,Math.floor(c.sampleRate*.55),c.sampleRate);
+  const noiseData=noiseBuffer.getChannelData(0);
+  for(let i=0;i<noiseData.length;i++)noiseData[i]=Math.random()*2-1;
+  const tone=(freq:number,duration:number,kind:'flute'|'strings'|'bass'|'pad',at:number,vol:number)=>{
+   const t=Math.max(c.currentTime+.005,at),osc=c.createOscillator(),gain=c.createGain(),filter=c.createBiquadFilter();
+   filter.type='lowpass';filter.frequency.value=kind==='flute'?1850:kind==='strings'?1450:kind==='pad'?760:480;
+   osc.type=kind==='flute'?'sine':kind==='strings'?'sawtooth':'triangle';
+   osc.frequency.setValueAtTime(freq,t);
+   if(kind==='strings')osc.frequency.exponentialRampToValueAtTime(freq*.995,t+.16);
+   const attack=kind==='pad'?.38:kind==='flute'?.10:kind==='bass'?.025:.008;
+   const release=kind==='pad'?.75:kind==='flute'?.32:kind==='strings'?.32:.18;
+   gain.gain.setValueAtTime(.0001,t);
+   gain.gain.linearRampToValueAtTime(vol,t+attack);
+   if(kind==='strings')gain.gain.exponentialRampToValueAtTime(Math.max(.0001,vol*.3),t+.20);
+   gain.gain.setTargetAtTime(.0001,t+Math.max(attack+.05,duration-release),release/3);
+   osc.connect(filter);filter.connect(gain);gain.connect(master);
+   osc.start(t);osc.stop(t+duration+.2);
   };
-  playStep();
-  interval.current=window.setInterval(playStep,stepMs);
-  return()=>{if(interval.current!==null)clearInterval(interval.current);interval.current=null};
+  const drum=(kind:'dum'|'tek'|'shaker',at:number,volume:number)=>{
+   const t=Math.max(c.currentTime+.005,at),source=c.createBufferSource(),filter=c.createBiquadFilter(),gain=c.createGain();
+   source.buffer=noiseBuffer;filter.type=kind==='dum'?'lowpass':'bandpass';
+   filter.frequency.value=kind==='dum'?250:kind==='tek'?950:4200;
+   filter.Q.value=kind==='shaker'?.65:1.1;
+   gain.gain.setValueAtTime(volume,t);
+   gain.gain.exponentialRampToValueAtTime(.0001,t+(kind==='dum'?.24:kind==='tek'?.11:.065));
+   source.connect(filter);filter.connect(gain);gain.connect(master);source.start(t);source.stop(t+.27);
+   if(kind==='dum'){
+    const osc=c.createOscillator(),g=c.createGain();osc.type='sine';
+    osc.frequency.setValueAtTime(115,t);osc.frequency.exponentialRampToValueAtTime(48,t+.18);
+    g.gain.setValueAtTime(volume*.9,t);g.gain.exponentialRampToValueAtTime(.0001,t+.23);
+    osc.connect(g);g.connect(master);osc.start(t);osc.stop(t+.25);
+   }
+  };
+  // Melodia original em Ré frígio dominante, com arranjo de oito compassos.
+  const melody:(number|null)[][]=[
+   [62,null,63,66,null,67,66,null,63,null,62,null,60,null,63,null],
+   [62,null,null,69,67,null,66,null,63,62,null,60,62,null,null,null],
+   [65,null,66,69,null,70,69,null,66,null,65,null,63,null,66,null],
+   [65,null,63,62,null,60,62,null,63,66,null,65,63,null,null,null],
+   [62,null,66,67,69,null,67,66,null,63,62,null,60,62,null,null],
+   [63,null,66,null,69,70,null,69,67,null,66,63,62,null,null,null],
+   [65,null,69,70,null,69,66,null,65,63,null,62,60,null,63,null],
+   [62,null,63,66,67,null,66,null,63,62,null,60,62,null,null,null]
+  ];
+  const midi=(n:number)=>440*Math.pow(2,(n-69)/12);
+  const chords=[[50,57,62],[50,57,63],[53,60,65],[53,60,66],[50,57,62],[51,58,63],[53,60,65],[50,57,62]];
+  const beat=.245;
+  let step=0,next=c.currentTime+.09;
+  const schedule=()=>{
+   while(next<c.currentTime+.42){
+    const bar=Math.floor(step/16)%8,part=step%16,when=next;
+    const lead=melody[bar][part];
+    if(lead!==null){
+     const nextNote=melody[bar].slice(part+1).findIndex(x=>x!==null);
+     const span=nextNote<0?2:Math.min(4,nextNote+1);
+     tone(midi(lead),Math.max(.42,span*beat*.9),'flute',when,.105);
+     if(part===0||part===8)tone(midi(lead-12),.68,'strings',when+.035,.036);
+    }
+    if(part===0){
+     chords[bar].forEach((n,i)=>tone(midi(n),3.65,'pad',when+i*.035,.032));
+     tone(midi(chords[bar][0]-12),1.65,'bass',when,.105);
+    }
+    if(part===8)tone(midi(chords[bar][0]-12),1.35,'bass',when,.085);
+    if([0,6,8,14].includes(part))drum('dum',when,part===0?.28:.20);
+    if([4,12].includes(part))drum('tek',when,.18);
+    if(part%2===0)drum('shaker',when,.048);
+    if([3,7,11,15].includes(part))tone(midi(chords[bar][1]+12),.36,'strings',when,.038);
+    step++;next+=beat;
+   }
+  };
+  schedule();
+  interval.current=window.setInterval(schedule,90);
+  return()=>{if(interval.current!==null)clearInterval(interval.current);interval.current=null;master.disconnect();delay.disconnect();feedback.disconnect();wet.disconnect();compressor.disconnect()};
  },[enabled,scene]);
  useEffect(()=>()=>{if(interval.current!==null)clearInterval(interval.current);void ctxRef.current?.close()},[]);
  return effect;
