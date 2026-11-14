@@ -85,7 +85,7 @@ const projects:Project[]=[
 {name:'Texto. IA',desc:'Assistente de escrita, resumo e revisão de textos.',stack:['Python','Streamlit','Groq API'],atk:2700,def:1700,type:'Inteligência Artificial',url:'https://github.com/Dzelmee',emoji:'✦',color:'#79baff',art:'/guardian-card-art-5.webp'},
 {name:'WhatsFlow',desc:'Solução de atendimento e automação de conversas.',stack:['Integrações','Web','Automação'],atk:2600,def:2000,type:'Automação',url:'https://github.com/Dzelmee/whatsflow',emoji:'◎',color:'#70e5c3',art:'/guardian-card-art-6.webp'},
 {name:'Projeto Academia',desc:'Site responsivo com identidade visual esportiva.',stack:['HTML','CSS','JavaScript'],atk:1800,def:1900,type:'Front-end',url:'https://github.com/Dzelmee/projeto-academia',emoji:'⚡',color:'#f4a95d',art:'/guardian-card-art-7.webp'},
-{name:'Meu Portfólio',desc:'Portfólio web com interface responsiva e projetos.',stack:['React','Vite','CSS'],atk:2200,def:2100,type:'Front-end',url:'https://github.com/Dzelmee/portfolio-jonas-dzelme',demo:'https://portfolio-jonas-dzelme.vercel.app/',emoji:'✧',color:'#e6c47e',art:'/guardian-card-art-8.webp'}];
+{name:'Meu Portfólio',desc:'Portfólio web com interface responsiva e projetos.',stack:['React','Vite','CSS'],atk:2200,def:2100,type:'Front-end',url:'https://github.com/Dzelmee/portfolio-jonas-dzelme',demo:'https://jonas-dzelme.vercel.app/',emoji:'✧',color:'#e6c47e',art:'/guardian-card-art-8.webp'}];
 
 const fusionResults:Project[]=[
 {name:'Rede Suprema',desc:'Criatura especial obtida por fusão.',stack:['Fusão'],atk:5900,def:4200,type:'FUSÃO',url:'https://github.com/Dzelmee',emoji:'✧',color:'#39edbd',art:'/fusion-card-art-1.webp'},
