@@ -122,6 +122,42 @@ function useRetroAudio(enabled:boolean,scene:string){
   // Original score: ritual percussion, PS1-era FM-like synthesis and a custom modal motif.
   // No melody, arrangement, sample or audio file from any existing game is used.
   const battle=scene==='duelo';
+  // Tema próprio para o duelo: escala com segunda menor e terça maior,
+  // percussão grave e fraseado mais espaçado, sem reproduzir a OST do jogo.
+  if(battle){
+   const roots=[110,103.83,98,116.54];
+   const phrases=[
+    [0,null,1,4,5,null,4,1,0,null,-2,1,4,null,1,null],
+    [0,1,4,null,7,5,4,null,1,0,-2,null,0,4,1,null],
+    [0,null,5,4,1,0,null,-2,0,1,4,5,7,null,5,4],
+    [4,1,0,null,-2,0,1,null,4,5,4,1,0,null,null,null]
+   ];
+   tick.current=0;
+   const playBattle=()=>{
+    const i=tick.current++,step=i%16,bar=Math.floor(i/16)%4;
+    const root=roots[bar],degree=phrases[bar][step];
+    if(degree!==null){
+     const pitch=root*2**((degree+12)/12);
+     // Timbre de sopro sintetizado com uma segunda voz discreta.
+     note(pitch,.38,'sawtooth',.028,0,1250);
+     note(pitch*1.003,.42,'triangle',.037,.012,1650);
+    }
+    // Bordão e resposta grave dão sustentação sem criar apitos repetitivos.
+    if(step===0||step===8){
+     note(root/2,1.35,'triangle',.065,0,370);
+     note(root*1.5,.9,'sine',.015,.08,900);
+    }
+    if(step%4===0){
+     note(62,.23,'triangle',.13,0,230);
+     note(46,.3,'sine',.075,.02,170);
+    }
+    if(step===6||step===14)note(165,.10,'triangle',.027,0,510);
+    if(step===12&&bar===3)note(root/2,.65,'sawtooth',.026,0,300);
+   };
+   playBattle();
+   interval.current=window.setInterval(playBattle,230);
+   return()=>{if(interval.current!==null)clearInterval(interval.current);interval.current=null};
+  }
   const roots=[110,116.54,146.83,130.81,110,98,116.54,130.81];
   // Relative semitone steps. Entire melody and its harmonic progression were written for this portfolio.
   const theme=[0,1,5,7,5,1,-2,0, 0,5,8,7,5,3,1,-2,
