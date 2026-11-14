@@ -399,3 +399,10 @@ img,canvas{max-width:100%}
 /* Uso o mesmo acabamento escuro com borda dourada em todos os links de contato. */
 .contact>a.contact-resume{background:transparent!important;color:#f0d99c!important;border:1px solid #e6c47e!important;box-shadow:none!important}
 .contact>a.contact-resume:hover{background:rgba(230,196,126,.09)!important;filter:none!important}
+
+/* Controles de saída da arena: fáceis de alcançar também em telas pequenas. */
+.arena-exit-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px;position:relative;z-index:8}
+.arena-back-button,.arena-back-home{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:46px;padding:10px 15px;border:2px solid #d6a64c;background:#10112de8;color:#f7dfa2;font:700 12px 'Roboto Mono',monospace;letter-spacing:.03em;touch-action:manipulation}
+.arena-back-button:hover,.arena-back-home:hover,.arena-back-button:focus-visible,.arena-back-home:focus-visible{background:#3b2b22;outline:2px solid #f8d47a;outline-offset:2px}
+@media(max-width:767px){.arena-exit-row{position:sticky;top:6px;z-index:40;padding:6px 0;background:linear-gradient(90deg,#0b0c27f2,#0b0c27dd)}.arena-back-button{flex:1;min-width:0}.arena-back-home{flex:0 0 auto}.arena-back-button,.arena-back-home{min-height:50px;font-size:11px;padding:9px 12px}}
+@media(max-width:380px){.arena-back-button,.arena-back-home{font-size:10px;gap:5px;padding:8px}}
