@@ -1,32 +1,31 @@
-# Meu portfólio — Forbidden Duel
+# Forbidden Duel — meu portfólio interativo
 
-Transformei meu portfólio em uma experiência interativa inspirada nos jogos de duelo da época do PlayStation 1. Além de conhecer meus projetos, dá para invocar cartas, combinar monstros e enfrentar o BUG.
+Eu queria um portfólio que mostrasse meus projetos, mas que também tivesse algo da minha personalidade. Como gosto dos jogos de duelo da época do PlayStation 1, resolvi transformar a navegação em uma experiência de cartas.
 
-## O que desenvolvi
+Além de visitar as páginas dos projetos, dá para entrar na arena, invocar cartas, fazer fusões e enfrentar o BUG. Cada carta representa algo que desenvolvi.
 
-- Arena 3D com Three.js e interface em React + TypeScript.
-- Cartas baseadas nos meus projetos, com fusões e animações próprias.
-- Idiomas português e inglês.
-- Trilha original gerada com Web Audio API e opção de silenciar.
-- Links de contato e currículo em PDF.
-- Layout adaptado para diferentes tamanhos de tela.
+**[Abrir o portfólio](https://portfolio-jonas-dzelme.vercel.app/)**
 
-## Rodando localmente
+## Como construí
+
+Usei **React, TypeScript e Vite** para organizar a interface e **Three.js** para a arena 3D. Também trabalhei nas animações das cartas, nas fusões e na adaptação das telas para diferentes dispositivos.
+
+O site tem versões em português e inglês. A trilha foi implementada com Web Audio API e pode ser silenciada. Os contatos e o currículo em PDF ficam disponíveis no próprio portfólio.
+
+## Rodar no computador
 
 ```bash
 npm install
 npm run dev
 ```
 
-Para gerar a versão de produção:
+Para gerar os arquivos de produção:
 
 ```bash
 npm run build
 ```
 
-## Publicação
-
-Uso a Vercel para publicar o site. O projeto é Vite: comando de build `npm run build`, diretório de saída `dist`.
+Publico o projeto pela Vercel, usando `npm run build` e a pasta `dist`.
 
 ## Contato
 
