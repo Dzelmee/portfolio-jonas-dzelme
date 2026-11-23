@@ -362,34 +362,43 @@ export default function WebGLArena({player,enemy,phase,flash,projects,slots,guar
   const observer=new ResizeObserver(resize);observer.observe(host);resize();
   const loop=()=>{raf=requestAnimationFrame(loop);const dt=Math.min(clock.getDelta(),.05),t=clock.elapsedTime;
    const s=state.current;syncSlots(s.slots);const vals=[s.player,s.enemy];
+   // Start the attack clock before updating creatures so every frame shares the same timing.
+   if(s.phase!==lastPhase){lastPhase=s.phase;if(s.phase==='attack'){attackStart=t;impactStart=t+.47;impact.position.set(platforms[1].x,3,platforms[1].z)}}
    vals.forEach((v,i)=>{const group=monsters[i];if(v!==[lastPlayer,lastEnemy][i]){born[i]=t;setCreature(i,v);if(v!==null)addLabel(i,v);else if(labels[i]){scene.remove(labels[i]!);labels[i]!.material.dispose();labels[i]=null}if(i===0)lastPlayer=v;else lastEnemy=v}
     group.visible=v!==null;if(!group.visible)return;
 const age=t-born[i];const rise=Math.min(1,Math.max(0,age/1.1));group.scale.setScalar(.65+.35*rise);group.position.y=1.35+Math.sin(t*2+i)*.12;group.rotation.y=(i===0?0.2:2.7)+Math.sin(t*.8+i)*.12;const model=activeModels[i];if(model){const energy=Math.sin(t*(i?5:2.2)+i);model.rotation.y=Math.sin(t*1.3+i)*.08;model.rotation.z=s.phase==='attack'?(i===0?-.12:.14)*Math.sin((t-attackStart)*12):0;model.children.forEach(c=>{if(c.name==='bug-wing')c.rotation.z=c.userData.rest+Math.sin(t*17+(c.userData.side||0))*.24;else if(c.name==='guardian-wing')c.rotation.z=c.userData.rest+Math.sin(t*4)*.12*c.userData.side;else if(c.name==='core')c.rotation.y+=dt*2.2});if(i===0){const kind=model.userData.kind??0;if(kind===1)model.rotation.y+=energy*.09;else if(kind===4)model.position.y=Math.sin(t*3)*.12;else if(kind===6)model.scale.setScalar(1+Math.max(0,energy)*.045)}}
     glyphs[i].visible=age<1.5||s.phase==='summon';glyphs[i].rotation.y+=dt*(i?-.7:.9);glyphs[i].scale.setScalar(.6+Math.min(1,age/1.1)*.5);
-    if(s.phase==='attack'&&i===0){const hit=Math.max(0,1-Math.abs(t-attackStart-.48)/.5);group.position.z-=hit*5;group.position.y+=hit*1.8}
+    if(s.phase==='attack'){
+      const elapsed=t-attackStart;
+      const charge=Math.max(0,Math.min(1,(elapsed-.08)/.42));
+      const release=Math.max(0,Math.min(1,(elapsed-.55)/.48));
+      const lunge=Math.sin(charge*Math.PI/2)*(1-release);
+      if(i===0){group.position.z-=lunge*9;group.position.y+=lunge*2.1;group.rotation.x=-lunge*.16}
+      else {const reaction=Math.max(0,1-Math.abs(elapsed-.65)/.28);group.position.z-=reaction*1.1;group.rotation.z=Math.sin(elapsed*40)*reaction*.12}
+    }else{group.rotation.x=0;group.rotation.z=0}
    });
-   if(s.phase!==lastPhase){lastPhase=s.phase;if(s.phase==='attack'){attackStart=t;impactStart=t+.47;impact.position.set(platforms[1].x,3,platforms[1].z)}}
    const impactAge=t-impactStart;impact.visible=s.phase==='attack'&&impactAge>=0&&impactAge<.85;if(impact.visible){shards.forEach((m,i)=>{const a=i*2.39996;const r=impactAge*(4+(i%5));m.position.set(Math.cos(a)*r,Math.sin(a*1.6)*r,Math.sin(a)*r);m.rotation.set(t*i*.1,t*.7,t*.5);m.scale.setScalar(Math.max(.05,1-impactAge/1.1))})}
    // Keep the normal field framing, but give attacks a short cinematic push-in.
    const attackAge=t-attackStart;
    const attackPush=s.phase==='attack'?Math.max(0,Math.sin(Math.min(1,Math.max(0,attackAge)/1.25)*Math.PI)):0;
-   cameraGoal.set(0,11.2-attackPush*1.4,25.2-attackPush*4.2);
-   cameraTarget.set(0,1.4+attackPush*.65,-4.5-attackPush*1.8);
-   camera.position.lerp(cameraGoal,Math.min(1,dt*3));camera.lookAt(cameraTarget);
+   cameraGoal.set(0,11.2-attackPush*3.2,25.2-attackPush*10.5);
+   cameraTarget.set(0,1.4+attackPush*1.6,-4.5-attackPush*3.4);
+   camera.position.lerp(cameraGoal,Math.min(1,dt*(s.phase==='attack'?12:5)));camera.lookAt(cameraTarget);
    portal.rotation.z+=dt*.16;core.scale.setScalar(1+Math.sin(t*2)*.07);
    rings.forEach(r=>{(r.material as THREE.MeshStandardMaterial).emissive.setHex(0x000000)});
    guardianSprites.forEach((sprite,k)=>{
      if(!sprite.visible)return;
      const bob=Math.sin(t*2.2+k*.9)*.06;
      const defending=!!s.defenseSlots[k];
-     const strike=!defending&&s.phase==='attack'&&k===s.activeSlot?Math.max(0,1-Math.abs(t-attackStart-.4)/.45):0;
+     const elapsed=t-attackStart;
+     const strike=!defending&&s.phase==='attack'&&k===s.activeSlot?Math.sin(Math.max(0,Math.min(1,(elapsed-.08)/.85))*Math.PI):0;
      const fusionCreature=s.slots[k]!==null&&s.slots[k]!>=8;
      const targetHeight=defending?(fusionCreature?2.45:1.82):(fusionCreature?4.55:3.55);
      const targetWidth=defending?(fusionCreature?3.0:2.65):(fusionCreature?3.7:2.95);
      sprite.scale.x+=(targetWidth*(1+strike*.08)-sprite.scale.x)*Math.min(1,dt*9);
      sprite.scale.y+=(targetHeight*(1+strike*.08)-sprite.scale.y)*Math.min(1,dt*9);
      sprite.material.rotation+=((defending?-.32:0)-sprite.material.rotation)*Math.min(1,dt*9);
-     sprite.position.set(slotPositions[k],.43+bob+strike*.65,(defending?4.82:4.35)-strike*3.2);
+     sprite.position.set(slotPositions[k],.43+bob+strike*1.15,(defending?4.82:4.35)-strike*7.5);
      cardMeshes[k].rotation.z+=((defending?Math.PI/2:0)-cardMeshes[k].rotation.z)*Math.min(1,dt*10);
    });
    particles.forEach((p,i)=>{p.position.y+=dt*(.4+i%4*.1);if(p.position.y>13)p.position.y=0});violet.intensity=s.flash?110:36;
