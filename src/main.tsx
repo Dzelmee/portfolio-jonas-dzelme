@@ -1,6 +1,6 @@
 import WebGLArena from './WebGLArena';
 import React, {useEffect,useRef,useState} from 'react';import{createRoot}from'react-dom/client';import{Github,ExternalLink,Mail,ChevronLeft,ChevronRight,Volume2,VolumeX,Swords,ScrollText,Code2,UserRound,Gamepad2,Home,BriefcaseBusiness,ArrowLeft,Shield,Heart,RotateCcw}from'lucide-react';import './style.css';
-// Vite bundles each guardian explicitly, avoiding fragile absolute /guardian-N.png paths.
+// Importa as artes para o Vite incluir no build.
 import guardian1 from './guardians/guardian-1.png';
 import guardian2 from './guardians/guardian-2.png';
 import guardian3 from './guardians/guardian-3.png';
