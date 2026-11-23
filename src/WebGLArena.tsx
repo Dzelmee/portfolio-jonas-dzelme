@@ -17,9 +17,9 @@ export default function WebGLArena({player,enemy,phase,flash,projects,slots,guar
   scene.add(new THREE.HemisphereLight(0xe8d5af,0x171529,1.45));
   const sun=new THREE.DirectionalLight(0xffd29a,2.25);sun.position.set(-8,17,5);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun);
   const violet=new THREE.PointLight(0x7847cf,36,28);violet.position.set(0,6,-10);scene.add(violet);
-  // Procedural 32x32 pixel textures: intentionally low-resolution and original.
+  // Texturas pequenas para manter o visual de PS1.
   const pixelTexture=(base:string,accent:string,seed:number)=>{const c=document.createElement('canvas');c.width=c.height=32;const ctx=c.getContext('2d')!;ctx.fillStyle=base;ctx.fillRect(0,0,32,32);let n=seed;for(let i=0;i<180;i++){n=(n*1664525+1013904223)>>>0;const x=n%32;n=(n*1664525+1013904223)>>>0;const y=n%32;ctx.globalAlpha=.08+(i%4)*.06;ctx.fillStyle=accent;ctx.fillRect(x,y,2+(i%3),2+(i%2))}ctx.globalAlpha=1;const t=new THREE.CanvasTexture(c);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.NearestMipmapNearestFilter;t.wrapS=t.wrapT=THREE.RepeatWrapping;return t};
-  // Build 23: restrained sandstone and basalt, no noisy purple tiled grid.
+  // Tons de arenito e basalto no templo.
   const masonryTexture=()=>{const c=document.createElement('canvas');c.width=c.height=512;const ctx=c.getContext('2d')!;
     ctx.fillStyle='#756b62';ctx.fillRect(0,0,512,512);
     let seed=97;const rnd=()=>{seed=(1664525*seed+1013904223)>>>0;return seed/4294967296};
@@ -30,14 +30,14 @@ export default function WebGLArena({player,enemy,phase,flash,projects,slots,guar
     }
     const tex=new THREE.CanvasTexture(c);tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.repeat.set(2.2,3.2);tex.colorSpace=THREE.SRGBColorSpace;tex.anisotropy=4;return tex;
   };
-  // Atmospheric matte painting is generated locally and rendered behind the actual 3D temple.
-  // No external images, no dependency on network access.
+  // Fundo desenhado no canvas, atrás do templo 3D.
+  
   const backdropCanvas=document.createElement('canvas');backdropCanvas.width=1536;backdropCanvas.height=1024;
   const bc=backdropCanvas.getContext('2d')!;
   const sky=bc.createLinearGradient(0,0,0,1024);
   sky.addColorStop(0,'#070b1b');sky.addColorStop(.32,'#19172f');sky.addColorStop(.64,'#453148');sky.addColorStop(.83,'#775349');sky.addColorStop(1,'#221e2c');
   bc.fillStyle=sky;bc.fillRect(0,0,1536,1024);
-  // Moon halo, horizon glow, and atmospheric bands.
+  // Lua e iluminação do horizonte.
   const halo=bc.createRadialGradient(1130,275,20,1130,275,490);
   halo.addColorStop(0,'rgba(235,198,151,.22)');halo.addColorStop(.3,'rgba(182,117,131,.13)');halo.addColorStop(1,'rgba(91,62,115,0)');
   bc.fillStyle=halo;bc.fillRect(0,0,1536,1024);
@@ -45,13 +45,13 @@ export default function WebGLArena({player,enemy,phase,flash,projects,slots,guar
   bc.beginPath();bc.arc(1150,246,60,0,Math.PI*2);bc.fillStyle='#29263e';bc.fill();
   let starSeed=431;const starRand=()=>{starSeed=(1664525*starSeed+1013904223)>>>0;return starSeed/4294967296};
   for(let i=0;i<165;i++){const x=starRand()*1536,y=starRand()*560,r=.4+starRand()*1.6;bc.globalAlpha=.12+starRand()*.55;bc.fillStyle='#f6dcba';bc.fillRect(x,y,r,r)}bc.globalAlpha=1;
-  // Layered dunes and far temple ruins produce depth instead of an empty black void.
+  // Dunas e ruínas ao fundo.
   for(const [base,amp,col] of [[735,32,'#4d3c4b'],[805,45,'#332c40'],[910,50,'#211f31']] as const){
     bc.beginPath();bc.moveTo(0,1024);bc.lineTo(0,base);
     for(let x=0;x<=1536;x+=20)bc.lineTo(x,base+Math.sin(x/160+base)*amp+Math.sin(x/55)*amp*.2);
     bc.lineTo(1536,1024);bc.closePath();bc.fillStyle=col;bc.fill();
   }
-  // Distant silhouettes are pyramids and eroded mesas, not disconnected black columns.
+  // Silhuetas das pirâmides e formações rochosas.
   const farPyramid=(x:number,y:number,w:number,h:number,color:string)=>{
     bc.beginPath();bc.moveTo(x-w/2,y);bc.lineTo(x,y-h);bc.lineTo(x+w/2,y);bc.closePath();bc.fillStyle=color;bc.fill();
     bc.beginPath();bc.moveTo(x,y-h);bc.lineTo(x+w/2,y);bc.lineTo(x,y);bc.closePath();bc.fillStyle='rgba(14,13,27,.22)';bc.fill();
@@ -61,17 +61,17 @@ export default function WebGLArena({player,enemy,phase,flash,projects,slots,guar
   for(const [x,y,w,h] of [[18,830,210,115],[1450,850,220,150]] as const){
     bc.beginPath();bc.moveTo(x-w/2,y);bc.lineTo(x-w*.36,y-h*.85);bc.lineTo(x+w*.2,y-h);bc.lineTo(x+w*.5,y-h*.55);bc.lineTo(x+w/2,y);bc.closePath();bc.fillStyle='#392f41';bc.fill();
   }
-  // Layered horizontal dust haze integrates the silhouettes with the horizon.
+  // Poeira no horizonte.
   for(let j=0;j<7;j++){bc.fillStyle=`rgba(194,138,123,${.012+j*.003})`;bc.fillRect(0,695+j*29,1536,14)}
   const horizon=bc.createLinearGradient(0,610,0,990);horizon.addColorStop(0,'rgba(225,155,112,0)');horizon.addColorStop(.65,'rgba(211,151,119,.14)');horizon.addColorStop(1,'rgba(20,16,28,0)');bc.fillStyle=horizon;bc.fillRect(0,610,1536,380);
   const backdropTex=new THREE.CanvasTexture(backdropCanvas);backdropTex.colorSpace=THREE.SRGBColorSpace;
   const backdrop=new THREE.Mesh(new THREE.PlaneGeometry(850,500),new THREE.MeshBasicMaterial({map:backdropTex,depthWrite:false,fog:false,side:THREE.DoubleSide,toneMapped:false}));
   backdrop.position.set(0,22,-140);backdrop.renderOrder=-100;scene.add(backdrop);
-  // Thin transparent shafts of light through the ruins.
+  // Feixes de luz entre as ruínas.
   const beamMat=new THREE.MeshBasicMaterial({color:0xe3b88e,transparent:true,opacity:.065,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,fog:false});
   for(const [x,rotation] of [] as [number,number][]){const beam=new THREE.Mesh(new THREE.PlaneGeometry(8,30),beamMat);beam.position.set(x,12,-21);beam.rotation.z=rotation;scene.add(beam)}
-  // Continuous sandstone terrain to the left and right of the dueling bridge.
-  // Meshes are intentionally broad, with no open seams visible from the camera.
+  // Terreno nas laterais da arena.
+  
   const terrainMat=new THREE.MeshStandardMaterial({color:0x483943,roughness:1,metalness:0,flatShading:true,side:THREE.DoubleSide});
   const terrainMat2=new THREE.MeshStandardMaterial({color:0x66505a,roughness:1,metalness:0,flatShading:true,side:THREE.DoubleSide});
   for(const side of [-1,1])for(let band=0;band<4;band++){
@@ -97,7 +97,7 @@ export default function WebGLArena({player,enemy,phase,flash,projects,slots,guar
   const dark=new THREE.MeshStandardMaterial({color:0x242433,roughness:.87});
   const floor=new THREE.Mesh(new THREE.BoxGeometry(32,.75,48),stone);floor.position.set(0,-.75,-3);floor.receiveShadow=true;scene.add(floor);
   const addBox=(w:number,h:number,d:number,x:number,y:number,z:number,mat:THREE.Material)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m};
-  // Architectural columns: round fluted shafts, subtle capitals, gold inlays.
+  // Colunas e detalhes dourados.
   for(const x of [-11,11])for(const z of [-15,-5]){
     const base=new THREE.Mesh(new THREE.CylinderGeometry(1.45,1.65,.55,20),sandstone);base.position.set(x,.15,z);base.castShadow=true;scene.add(base);
     const shaft=new THREE.Mesh(new THREE.CylinderGeometry(.86,1.06,8.5,24),sandstone);shaft.position.set(x,4.65,z);shaft.castShadow=true;scene.add(shaft);
@@ -105,24 +105,24 @@ export default function WebGLArena({player,enemy,phase,flash,projects,slots,guar
     const capital=new THREE.Mesh(new THREE.CylinderGeometry(1.55,1.1,.85,20),sandstone);capital.position.set(x,9.3,z);capital.castShadow=true;scene.add(capital);
     const band=new THREE.Mesh(new THREE.CylinderGeometry(1.51,1.51,.12,20),trim);band.position.set(x,9.76,z);scene.add(band);
   }
-  // Wide basalt staircase, coherent with the temple and without brick-like blocks.
+  // Escadaria de basalto.
   for(let i=0;i<8;i++)addBox(20-i*.6,.37,2.5,0,-.1+i*.42,-19-i*1.45,i%3===0?sandstone:dark);
   const pyramid=new THREE.Mesh(new THREE.ConeGeometry(8,11,4),dark);pyramid.position.set(0,5.8,-34);pyramid.rotation.y=Math.PI/4;scene.add(pyramid);
   const portal=new THREE.Mesh(new THREE.TorusGeometry(3.3,.28,16,64),new THREE.MeshStandardMaterial({color:0xb99562,emissive:0x56337c,emissiveIntensity:.45,metalness:.72,roughness:.32}));portal.position.set(0,6,-25);scene.add(portal);
   const core=new THREE.Mesh(new THREE.SphereGeometry(2.65,32,24),new THREE.MeshBasicMaterial({color:0x57318a,transparent:true,opacity:.2,depthWrite:false}));core.position.copy(portal.position);scene.add(core);
-  // Build 25: two opposing ceremonial duel zones instead of isolated circular pedestals.
-  // Preserve the original monster anchor coordinates so the existing 2.5D art remains aligned.
+  // Duas áreas de duelo no mesmo tabuleiro.
+  // Mantém os pontos de referência das criaturas.
   const platforms=[{x:0,z:5},{x:0,z:-12}];
   const rings:THREE.Mesh[]=[];
   const arenaBasalt=new THREE.MeshStandardMaterial({color:0x292631,metalness:.12,roughness:.84});
   const arenaBorder=new THREE.MeshStandardMaterial({color:0xc4a46a,metalness:.6,roughness:.44});
   const zoneInner=new THREE.MeshStandardMaterial({color:0x3a3540,metalness:.08,roughness:.83});
-  // A single raised duel board ties the two monster zones into one coherent battlefield.
+  
   addBox(17,.45,32,0,-.28,-3.5,arenaBasalt);
   const addLine=(w:number,d:number,x:number,z:number,mat:THREE.Material)=>addBox(w,.045,d,x,.01,z,mat);
   addLine(17,.17,0,12.35,arenaBorder);addLine(17,.17,0,-19.35,arenaBorder);
   addLine(.17,31.7,-8.4,-3.5,arenaBorder);addLine(.17,31.7,8.4,-3.5,arenaBorder);
-  // Five clearly separated monster slots per side. The middle slot is active at entry.
+  // Cinco zonas por lado, começando pela central.
   const slotMaterial=new THREE.MeshStandardMaterial({color:0x28232f,metalness:.18,roughness:.8});
   const activeEdge=new THREE.MeshStandardMaterial({color:0xe4c080,metalness:.55,roughness:.42});
   const inactiveEdge=new THREE.MeshStandardMaterial({color:0x66553f,metalness:.3,roughness:.75});
@@ -138,12 +138,12 @@ export default function WebGLArena({player,enemy,phase,flash,projects,slots,guar
       marker.position.set(x,.337,z+(side==='player'?2.3:-2.3));scene.add(marker);
     }
   }
-  // Keep the 3D BUG anchored to the opponent's middle slot.
+  // BUG fica na zona central do adversário.
   platforms[1].x=0;
-  // 2.5D guardian is overlaid at the front-left by CSS, so retain its WebGL anchor
-  // independently while the 5-slot layout is presented.
-  // Build 29: every card and guardian shares EXACTLY the same world-space x/z slot.
-  // No CSS-projected characters: the camera handles perspective for both.
+  // O guardião 2.5D usa a mesma referência da arena.
+  
+  // Carta e criatura compartilham a posição da zona.
+  
   const loader2=new THREE.TextureLoader();
   const artTextures:THREE.Texture[]=[];
   const guardianTextures:THREE.Texture[]=[];
@@ -153,7 +153,7 @@ export default function WebGLArena({player,enemy,phase,flash,projects,slots,guar
   const cardBlank=new THREE.MeshBasicMaterial({color:0x3a2535,side:THREE.DoubleSide});
   for(let k=0;k<5;k++){
     const x=slotPositions[k],z=5;
-    // Card backs / card fronts are horizontal, sitting on the field tile.
+    // Cartas apoiadas no campo.
     const border=new THREE.Mesh(new THREE.PlaneGeometry(2.5,3.85),cardGold);
     border.rotation.x=-Math.PI/2;border.position.set(x,.366,z);border.renderOrder=3;scene.add(border);
     const face=new THREE.Mesh(new THREE.PlaneGeometry(2.31,3.65),cardBlank.clone());
@@ -162,7 +162,7 @@ export default function WebGLArena({player,enemy,phase,flash,projects,slots,guar
     creature.position.set(x,.43,z-.65);creature.scale.set(2.95,3.55,1);creature.center.set(.5,0);
     creature.visible=false;scene.add(creature);guardianSprites.push(creature);
   }
-  // Assets are loaded once, and the selected slot's sprites are changed in-place.
+  // Reaproveita as texturas ao trocar de carta.
   guardianImages.forEach(url=>{const tex=loader2.load(url);tex.colorSpace=THREE.SRGBColorSpace;guardianTextures.push(tex)});
   projects.forEach(project=>{
     const c=document.createElement('canvas');c.width=256;c.height=384;const ctx=c.getContext('2d')!;
@@ -200,17 +200,17 @@ export default function WebGLArena({player,enemy,phase,flash,projects,slots,guar
       }
     }
   };
-  // Opposing central divider and shallow card-slot motifs.
+  
   addLine(15,.15,0,-3.5,arenaBorder);
   for(const z of [-7.2,0.1])for(const x of [-6.5,-4.3,-2.1,.1,2.3,4.5,6.7]){
     addLine(1.65,.035,x,z,new THREE.MeshBasicMaterial({color:0x8b7350,transparent:true,opacity:.36}));
   }
-  // Angular temple pylons frame the distant battlefield like a ceremonial arena.
+  
   for(const x of [-9.5,9.5]){
     const pylon=new THREE.Mesh(new THREE.BoxGeometry(2.5,7,3.3),sandstone);pylon.position.set(x,3,-23);pylon.rotation.y=x>0?-.1:.1;pylon.castShadow=true;scene.add(pylon);
     addBox(2.8,.22,3.5,x,6.55,-23,arenaBorder);
   }
-  // Independent low-poly creatures: a project guardian versus the BUG invader.
+  // Criaturas low-poly do jogador e do BUG.
   const monsters:[THREE.Group,THREE.Group]=[new THREE.Group(),new THREE.Group()];
   const creatureMaterials=[0x4bd7ee,0xa86cf3,0xffbd59,0x60e38d,0x84c3ff,0x69f2bb,0xf49a57,0xb8a6ef].map(c=>new THREE.MeshStandardMaterial({color:c,flatShading:true,metalness:.3,roughness:.6}));
   const bugShell=new THREE.MeshStandardMaterial({color:0xbda5df,map:shellTex,flatShading:true,metalness:.52,roughness:.35,emissive:0x24103c,emissiveIntensity:.28});
@@ -228,7 +228,7 @@ export default function WebGLArena({player,enemy,phase,flash,projects,slots,guar
       const antenna=makeMesh(g,new THREE.ConeGeometry(.12,1.35,4),gold,side*.38,3.45,1.65);antenna.rotation.z=side*-.42;
       const mandible=makeMesh(g,new THREE.ConeGeometry(.21,.8,4),gold,side*.43,1.85,2);mandible.rotation.z=side*-.75;
     }
-    // Distinctive chitin spikes and illuminated thorax distinguish BUG from the guardian art.
+    
     for(let k=0;k<5;k++){const spike=makeMesh(g,new THREE.ConeGeometry(.19,.9,6),gold,(k-2)*.44,3.05,-.7);spike.rotation.z=(k-2)*-.18;}
     const thoraxGlow=new THREE.MeshBasicMaterial({color:0xcf65ff});
     makeMesh(g,new THREE.OctahedronGeometry(.45,0),thoraxGlow,0,2.3,1.12);
@@ -237,7 +237,7 @@ export default function WebGLArena({player,enemy,phase,flash,projects,slots,guar
     return g;
   };
   const makeGuardian=(index:number)=>{const g=new THREE.Group(),mat=creatureMaterials[index%creatureMaterials.length];g.userData.kind=index;
-    // Large distinctive silhouettes keep the summoned guardian readable from the battle camera.
+    
     const crest=new THREE.Group();g.add(crest);
     const gem=new THREE.MeshBasicMaterial({color:0x8af4ff});
     const body=makeMesh(g,new THREE.DodecahedronGeometry(.95,0),mat,0,2.0,0);body.scale.y=1.28;
@@ -268,7 +268,7 @@ export default function WebGLArena({player,enemy,phase,flash,projects,slots,guar
       const crystal=makeMesh(g,new THREE.OctahedronGeometry(.6,0),new THREE.MeshBasicMaterial({color:0x8deaff}),0,2.15,1);crystal.name='core';
       for(const side of [-1,1]){const wing=makeMesh(g,new THREE.ConeGeometry(.6,2.5,4),mat,side*1.5,2.7,-.3);wing.rotation.z=side*.75}
     }
-    // Individual silhouette signatures, deliberately chunky like late-1990s console models.
+    
     const accent=new THREE.MeshBasicMaterial({color:[0x00eeff,0xff67dc,0x55ffbd,0xffe267,0x91aaff,0x50ff9a,0xff764c,0xc8a6ff][index%8]});
     if(index===0){ // CRM: broad mechanical visor and floating data panels
       makeMesh(g,new THREE.BoxGeometry(1.65,.35,.45),accent,0,3.48,.72);
@@ -297,11 +297,11 @@ export default function WebGLArena({player,enemy,phase,flash,projects,slots,guar
     }
     return g;
   };
-  // Character art is rendered on animated camera-facing planes, not as abstract primitives.
-  // Depth testing is disabled for these foreground character layers so the stone platform
-  // can never hide them, including after switching cards.
-  // Build 21: load an actual rigged GLB for the first project when available.
-  // Other projects retain the stable 2.5D fallback. A failed load never hides a guardian.
+  // As artes acompanham a câmera.
+  // Evita que o tabuleiro esconda as criaturas.
+  
+  // Tenta carregar o modelo 3D do primeiro projeto.
+  // Se falhar, mantém a arte 2.5D.
   const loader=new GLTFLoader();
   let playerAssetRequest=0;
   let playerHas3D=false;
@@ -323,7 +323,7 @@ export default function WebGLArena({player,enemy,phase,flash,projects,slots,guar
           monsters[0].add(root);
           activeModels[0]=root;
           playerHas3D=true;
-          // Hide the 2.5D fallback only after the 3D model is ready.
+          // Só troca a arte quando o modelo estiver pronto.
           host.dispatchEvent(new CustomEvent('guardian-3d-ready',{bubbles:true,detail:{index:0}}));
         },undefined,()=>{
           if(request===playerAssetRequest)host.dispatchEvent(new CustomEvent('guardian-3d-fallback',{bubbles:true}));
@@ -331,15 +331,15 @@ export default function WebGLArena({player,enemy,phase,flash,projects,slots,guar
       }
     }
     const model=slot===1?makeBug():new THREE.Group();
-    // The BUG remains a real animated 3D mesh. Player characters are illustrated
-    // creature sprites with continuous idle and attack animations, supported by
-    // their own low-poly model as a secondary shadow/collision silhouette.
+    // BUG usa modelo 3D; as outras criaturas usam sprites animados.
+    
+    
     model.scale.setScalar(slot===0?.9:1.35);
     if(slot===0)model.visible=false;
     parent.add(model);activeModels[slot]=model;
 
   };
-  // Summoning glyphs and impact bursts are actual meshes in the 3D scene.
+  // Efeitos de invocação e impacto dentro da cena 3D.
   const glyphs=platforms.map(({x,z})=>{const g=new THREE.Group();g.position.set(x,.93,z);for(let j=0;j<3;j++){const ring=new THREE.Mesh(new THREE.TorusGeometry(1.2+j*.55,.035,3,32),new THREE.MeshBasicMaterial({color:j===1?0xc07cff:0xffd17b,transparent:true,opacity:.65,depthWrite:false}));ring.rotation.x=Math.PI/2;g.add(ring)}scene.add(g);return g});
   const impact=new THREE.Group();const shards:THREE.Mesh[]=[];for(let i=0;i<24;i++){const shard=new THREE.Mesh(new THREE.TetrahedronGeometry(.1+(i%4)*.055),new THREE.MeshBasicMaterial({color:i%3===0?0xffe29a:0xb56cff}));impact.add(shard);shards.push(shard)}impact.visible=false;scene.add(impact);
   const labels:[THREE.Sprite|null,THREE.Sprite|null]=[null,null];
@@ -362,7 +362,7 @@ export default function WebGLArena({player,enemy,phase,flash,projects,slots,guar
   const observer=new ResizeObserver(resize);observer.observe(host);resize();
   const loop=()=>{raf=requestAnimationFrame(loop);const dt=Math.min(clock.getDelta(),.05),t=clock.elapsedTime;
    const s=state.current;syncSlots(s.slots);const vals=[s.player,s.enemy];
-   // Start the attack clock before updating creatures so every frame shares the same timing.
+   // Sincroniza o ataque antes de atualizar as criaturas.
    if(s.phase!==lastPhase){lastPhase=s.phase;if(s.phase==='attack'){attackStart=t;impactStart=t+.47;impact.position.set(platforms[1].x,3,platforms[1].z)}}
    vals.forEach((v,i)=>{const group=monsters[i];if(v!==[lastPlayer,lastEnemy][i]){born[i]=t;setCreature(i,v);if(v!==null)addLabel(i,v);else if(labels[i]){scene.remove(labels[i]!);labels[i]!.material.dispose();labels[i]=null}if(i===0)lastPlayer=v;else lastEnemy=v}
     group.visible=v!==null;if(!group.visible)return;
@@ -378,7 +378,7 @@ const age=t-born[i];const rise=Math.min(1,Math.max(0,age/1.1));group.scale.setSc
     }else{group.rotation.x=0;group.rotation.z=0}
    });
    const impactAge=t-impactStart;impact.visible=s.phase==='attack'&&impactAge>=0&&impactAge<.85;if(impact.visible){shards.forEach((m,i)=>{const a=i*2.39996;const r=impactAge*(4+(i%5));m.position.set(Math.cos(a)*r,Math.sin(a*1.6)*r,Math.sin(a)*r);m.rotation.set(t*i*.1,t*.7,t*.5);m.scale.setScalar(Math.max(.05,1-impactAge/1.1))})}
-   // Keep the normal field framing, but give attacks a short cinematic push-in.
+   // Aproxima a câmera durante o ataque e depois retorna ao campo.
    const attackAge=t-attackStart;
    const attackPush=s.phase==='attack'?Math.max(0,Math.sin(Math.min(1,Math.max(0,attackAge)/1.25)*Math.PI)):0;
    cameraGoal.set(0,11.2-attackPush*3.2,25.2-attackPush*10.5);
