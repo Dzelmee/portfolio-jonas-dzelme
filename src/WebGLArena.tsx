@@ -370,8 +370,11 @@ const age=t-born[i];const rise=Math.min(1,Math.max(0,age/1.1));group.scale.setSc
    });
    if(s.phase!==lastPhase){lastPhase=s.phase;if(s.phase==='attack'){attackStart=t;impactStart=t+.47;impact.position.set(platforms[1].x,3,platforms[1].z)}}
    const impactAge=t-impactStart;impact.visible=s.phase==='attack'&&impactAge>=0&&impactAge<.85;if(impact.visible){shards.forEach((m,i)=>{const a=i*2.39996;const r=impactAge*(4+(i%5));m.position.set(Math.cos(a)*r,Math.sin(a*1.6)*r,Math.sin(a)*r);m.rotation.set(t*i*.1,t*.7,t*.5);m.scale.setScalar(Math.max(.05,1-impactAge/1.1))})}
-   // Fixed field camera: no wandering or side-shifting during card selection or summons.
-   cameraGoal.set(0,11.2,25.2);cameraTarget.set(0,1.4,-4.5);
+   // Keep the normal field framing, but give attacks a short cinematic push-in.
+   const attackAge=t-attackStart;
+   const attackPush=s.phase==='attack'?Math.max(0,Math.sin(Math.min(1,Math.max(0,attackAge)/1.25)*Math.PI)):0;
+   cameraGoal.set(0,11.2-attackPush*1.4,25.2-attackPush*4.2);
+   cameraTarget.set(0,1.4+attackPush*.65,-4.5-attackPush*1.8);
    camera.position.lerp(cameraGoal,Math.min(1,dt*3));camera.lookAt(cameraTarget);
    portal.rotation.z+=dt*.16;core.scale.setScalar(1+Math.sin(t*2)*.07);
    rings.forEach(r=>{(r.material as THREE.MeshStandardMaterial).emissive.setHex(0x000000)});
@@ -386,7 +389,7 @@ const age=t-born[i];const rise=Math.min(1,Math.max(0,age/1.1));group.scale.setSc
      sprite.scale.x+=(targetWidth*(1+strike*.08)-sprite.scale.x)*Math.min(1,dt*9);
      sprite.scale.y+=(targetHeight*(1+strike*.08)-sprite.scale.y)*Math.min(1,dt*9);
      sprite.material.rotation+=((defending?-.32:0)-sprite.material.rotation)*Math.min(1,dt*9);
-     sprite.position.set(slotPositions[k],.43+bob+strike*.35,defending?4.82:4.35);
+     sprite.position.set(slotPositions[k],.43+bob+strike*.65,(defending?4.82:4.35)-strike*3.2);
      cardMeshes[k].rotation.z+=((defending?Math.PI/2:0)-cardMeshes[k].rotation.z)*Math.min(1,dt*10);
    });
    particles.forEach((p,i)=>{p.position.y+=dt*(.4+i%4*.1);if(p.position.y>13)p.position.y=0});violet.intensity=s.flash?110:36;
